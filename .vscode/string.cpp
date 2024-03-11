@@ -1,14 +1,4 @@
 
-	int n1,n2;
-	cin>>n1>>n2;
-	cout<<reverseNum(reverseNum(n1)+reverseNum(n2))<<endl;
-	}
-}
-
-
-
-
-
 //#include <algorithm>
 //#include <iostream>
 //#include <iterator>
@@ -16,6 +6,9 @@
 //#include <cstddef>    
 //#include<stack>
 //using namespace std;
+
+
+
 
 //void reverseSentence(string s){
 //	stack<string>st;
