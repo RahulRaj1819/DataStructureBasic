@@ -1,0 +1,677 @@
+//56.Merge Intervals
+
+//200 Number of Islands
+Given an m x n 2D binary grid grid which represents a map of '1's (land) and '0's (water), return the number of islands.
+
+An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.
+
+ 
+
+Example 1:
+
+Input: grid = [
+  ["1","1","1","1","0"],
+  ["1","1","0","1","0"],
+  ["1","1","0","0","0"],
+  ["0","0","0","0","0"]
+]
+Output: 1
+Example 2:
+
+Input: grid = [
+  ["1","1","0","0","0"],
+  ["1","1","0","0","0"],
+  ["0","0","1","0","0"],
+  ["0","0","0","1","1"]
+]
+Output: 3
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 300
+grid[i][j] is '0' or '1'.
+
+class Solution {
+public:
+    int x[4] = {-1, 1, 0, 0};
+    int y[4] = {0, 0, -1, 1};
+    void solve(int row, int col, vector<vector<char>>& grid,
+               vector<vector<int>>& vis, int m, int n) {
+        if (row == m || col == n) {
+            return;
+        }
+        vis[row][col] = 1;
+        for (int i = 0; i < 4; i++) {
+            int n_row = row + x[i];
+            int n_col = col + y[i];
+            if (n_row>=0 && n_row<m && n_col>=0 && n_col<n && grid[n_row][n_col] == '1' && vis[n_row][n_col] == -1) {
+                solve(n_row, n_col, grid, vis, m, n);
+            }
+        }
+    }
+    int numIslands(vector<vector<char>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<vector<int>> vis(m, vector<int>(n, -1));
+        int cnt = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == '1' && vis[i][j] == -1) {
+                    cnt++;
+                    solve(i, j, grid, vis, m, n);
+                }
+            }
+        }
+        return cnt;
+    }
+};
+2638. Count the Number of K-Free Subsets
+
+https://leetcode.com/problems/count-the-number-of-k-free-subsets/
+2638. Count the Number of K-Free Subsets
+You are given an integer array nums, which contains distinct elements and an integer k.
+
+A subset is called a k-Free subset if it contains no two elements with an absolute difference equal to k. Notice that the empty set is a k-Free subset.
+
+Return the number of k-Free subsets of nums.
+
+A subset of an array is a selection of elements (possibly none) of the array.
+
+ 
+
+Example 1:
+
+Input: nums = [5,4,6], k = 1
+Output: 5
+Explanation: There are 5 valid subsets: {}, {5}, {4}, {6} and {4, 6}.
+Example 2:
+
+Input: nums = [2,3,5,8], k = 5
+Output: 12
+Explanation: There are 12 valid subsets: {}, {2}, {3}, {5}, {8}, {2, 3}, {2, 3, 5}, {2, 5}, {2, 5, 8}, {2, 8}, {3, 5} and {5, 8}.
+Example 3:
+
+Input: nums = [10,5,9,11], k = 20
+Output: 16
+Explanation: All subsets are valid. Since the total count of subsets is 24 = 16, so the answer is 16. 
+ 
+
+Constraints:
+
+1 <= nums.length <= 50
+1 <= nums[i] <= 1000
+1 <= k <= 1000
+
+//solution
+Grouping + Dynamic Programming + PrefixSum
+After dividing the nums array into independent groups, we have to figure out how to find the number of k-free subsets for each group. We can first sort the number in increasing order and then exploit the optimal substructure by dynamic programming.
+
+Assume the sorted array of a group is v[0..n-1], then we can build a dp table dp[0..n] with dp[i] defined as the number of k-free subsets with largest element v[i]. What we have to compute is just the sum of dp[0..n](first entry for empty subset, which is valid). The recursion relation is
+dp[i]= 
+⎩
+⎨
+⎧
+​
+  
+1,if i=0
+∑ 
+j=0
+i−1
+​
+ dp[j],v[i−1]
+
+=v[i−2]+k
+∑ 
+j=0
+j−2
+​
+ dp[j],otherwise
+​
+ 
+, and we have to return ∑ 
+j=0
+n
+​
+ dp[j].
+
+We can further optimize the space by defining the prefix sum:
+dp[i]= 
+⎩
+⎨
+⎧
+​
+  
+1,if i=0
+prefsum[i−1],v[i−1]
+
+=v[i−2]+k
+prefsum[i−2]=prefsum[i−1]−dp[i−1],otherwise
+​
+ 
+, and we have to return prefsum[n]. In this case, we only have to keep the prior prefix sum prefsum[i-1](corresponding to num_ksubset in the implementation) and previous value dp[i-1](corresponding to prevkinds in the implementation). We can reduce the extra space usage to O(1).
+
+Finally, we multiply all final prefix sums of each group and report the answer.
+
+Complexity
+Time complexity:
+O(n\log n + k) for worst case sorting for k buckets
+O(n + k) for dynamic programming algorithm(only have to scan n elements)
+Overall: O(n\log n + k)
+
+class Solution {
+public:
+    long long countTheNumOfKFreeSubsets(vector<int>& nums, int k) {
+        long long res = 1;
+        std::vector<int> buckets[k];
+        for (int i: nums) {
+            buckets[i%k].push_back(i);
+        }
+        for (auto & bucket: buckets) {
+            int sz = bucket.size();
+            long long num_ksubset = 1;
+            long long prevkinds = 1; // empty subset is as a valid k-free subset
+            std::sort(begin(bucket), end(bucket));
+            // curkinds = dp[i]: number of k-free subset containing the element bucket[j]
+            // prevkinds = dp[i-1]: number of k-free subset containing the previous element
+            // num_ksubset = prefsum[i-1]: total number of k-free subset for group i
+            for (int j = 0; j < sz; ++j) {
+                long long curkinds = 0;
+                if (j && bucket[j] == bucket[j-1] + k) {
+                    // can't contain the previous element
+                    curkinds = num_ksubset - prevkinds;
+                } else {
+                    curkinds = num_ksubset;
+                }
+                num_ksubset += curkinds;
+                prevkinds = curkinds;
+            }
+            res *= num_ksubset;   
+        }
+        return res;
+    }
+};
+Q937
+https://leetcode.com/problems/reorder-data-in-log-files/
+Q2222
+https://leetcode.com/problems/number-of-ways-to-select-buildings/
+
+Q2461
+https://leetcode.com/problems/maximum-sum-of-distinct-subarrays-with-length-k/
+
+Q2486
+https://leetcode.com/problems/append-characters-to-string-to-make-subsequence/
+
+
+1650. Lowest Common Ancestor of a Binary Tree III
+Given two nodes of a binary tree p and q, return their lowest common ancestor (LCA).
+
+Each node will have a reference to its parent node. The definition for Node is below:
+
+class Node {
+    public int val;
+    public Node left;
+    public Node right;
+    public Node parent;
+}
+According to the definition of LCA on Wikipedia: "The lowest common ancestor of two nodes p and q in a tree T is the lowest node that has both p and q as descendants (where we allow a node to be a descendant of itself)."
+
+ 
+
+Example 1:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1
+Output: 3
+Explanation: The LCA of nodes 5 and 1 is 3.
+Example 2:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 4
+Output: 5
+Explanation: The LCA of nodes 5 and 4 is 5 since a node can be a descendant of itself according to the LCA definition.
+Example 3:
+
+Input: root = [1,2], p = 1, q = 2
+Output: 1
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [2, 105].
+-109 <= Node.val <= 109
+All Node.val are unique.
+p != q
+p and q exist in the tree.
+
+/*
+// Definition for a Node.
+class Node {
+public:
+    int val;
+    Node* left;
+    Node* right;
+    Node* parent;
+};
+*/
+
+class Solution {
+public:
+    Node* lowestCommonAncestor(Node* p, Node * q) {
+        set<int> s;
+        do {
+            s.insert(p->val);
+            p = p->parent;
+        } while (p != nullptr);
+        while (true) {
+            if (s.count(q->val) != 0) {
+                return q;
+            }
+            q = q->parent;
+        }
+    }
+};
+
+1492
+https://leetcode.com/problems/the-kth-factor-of-n/
+
+Q2405
+https://leetcode.com/problems/optimal-partition-of-string/
+
+2534 Time taken to cross the Door
+https://leetcode.com/problems/time-taken-to-cross-the-door/
+
+There are n persons numbered from 0 to n - 1 and a door. Each person can enter or exit through the door once, taking one second.
+
+You are given a non-decreasing integer array arrival of size n, where arrival[i] is the arrival time of the ith person at the door. You are also given an array state of size n, where state[i] is 0 if person i wants to enter through the door or 1 if they want to exit through the door.
+
+If two or more persons want to use the door at the same time, they follow the following rules:
+
+If the door was not used in the previous second, then the person who wants to exit goes first.
+If the door was used in the previous second for entering, the person who wants to enter goes first.
+If the door was used in the previous second for exiting, the person who wants to exit goes first.
+If multiple persons want to go in the same direction, the person with the smallest index goes first.
+Return an array answer of size n where answer[i] is the second at which the ith person crosses the door.
+
+Note that:
+
+Only one person can cross the door at each second.
+A person may arrive at the door and wait without entering or exiting to follow the mentioned rules.
+ 
+
+Example 1:
+
+Input: arrival = [0,1,1,2,4], state = [0,1,0,0,1]
+Output: [0,3,1,2,4]
+Explanation: At each second we have the following:
+- At t = 0: Person 0 is the only one who wants to enter, so they just enter through the door.
+- At t = 1: Person 1 wants to exit, and person 2 wants to enter. Since the door was used the previous second for entering, person 2 enters.
+- At t = 2: Person 1 still wants to exit, and person 3 wants to enter. Since the door was used the previous second for entering, person 3 enters.
+- At t = 3: Person 1 is the only one who wants to exit, so they just exit through the door.
+- At t = 4: Person 4 is the only one who wants to exit, so they just exit through the door.
+Example 2:
+
+Input: arrival = [0,0,0], state = [1,0,1]
+Output: [0,2,1]
+Explanation: At each second we have the following:
+- At t = 0: Person 1 wants to enter while persons 0 and 2 want to exit. Since the door was not used in the previous second, the persons who want to exit get to go first. Since person 0 has a smaller index, they exit first.
+- At t = 1: Person 1 wants to enter, and person 2 wants to exit. Since the door was used in the previous second for exiting, person 2 exits.
+- At t = 2: Person 1 is the only one who wants to enter, so they just enter through the door.
+ 
+
+Constraints:
+
+n == arrival.length == state.length
+1 <= n <= 105
+0 <= arrival[i] <= n
+arrival is sorted in non-decreasing order.
+state[i] is either 0 or 1.
+
+//Solution
+class Solution {
+public:
+    vector<int> timeTaken(vector<int>& arrival, vector<int>& state) {
+        auto ans=state;
+        vector<vector<int>>time(arrival.size()+1);
+        for(int i=0;i<arrival.size();i++) time[arrival[i]].push_back(i);
+        priority_queue<int>enter,exit;
+        vector<int>doorState(arrival.size()*3,-1);
+        int t=0;
+        int i=0;
+        while(i<time.size() or enter.size() or exit.size()){
+            int p=(t==0?-1:doorState[t-1]);
+            while(i<time.size() and i<=t){
+                for(auto t:time[i]){
+                    if(state[t]==1) exit.push(-t);
+                    else enter.push(-t);
+                }
+                i++;
+            }
+            if(enter.size() and exit.size()){
+                if(p==-1 or p==1){
+                    int idx=-exit.top();
+                    exit.pop();
+                    ans[idx]=t;
+                    doorState[t]=1;
+                }
+                else{
+                    int idx=-enter.top();
+                    enter.pop();
+                    ans[idx]=t;
+                    doorState[t]=0;
+                }
+            }
+            else if(enter.size()){
+                int idx=-enter.top();
+                enter.pop();
+                ans[idx]=t;
+                doorState[t]=0;
+            }
+            else if(exit.size()){
+                int idx=-exit.top();
+                exit.pop();
+                ans[idx]=t;
+                doorState[t]=1;
+            }
+            t++;
+        }
+        return ans;
+    }
+};
+
+
+1676 Lowest Common Ancestor of a Binary Tree IV
+https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iv/
+Given the root of a binary tree and an array of TreeNode objects nodes, return the lowest common ancestor (LCA) of all the nodes in nodes. All the nodes will exist in the tree, and all values of the tree's nodes are unique.
+
+Extending the definition of LCA on Wikipedia: "The lowest common ancestor of n nodes p1, p2, ..., pn in a binary tree T is the lowest node that has every pi as a descendant (where we allow a node to be a descendant of itself) for every valid i". A descendant of a node x is a node y that is on the path from node x to some leaf node.
+
+ 
+
+Example 1:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [4,7]
+Output: 2
+Explanation: The lowest common ancestor of nodes 4 and 7 is node 2.
+Example 2:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [1]
+Output: 1
+Explanation: The lowest common ancestor of a single node is the node itself.
+
+Example 3:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [7,6,2,4]
+Output: 5
+Explanation: The lowest common ancestor of the nodes 7, 6, 2, and 4 is node 5.
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 104].
+-109 <= Node.val <= 109
+All Node.val are unique.
+All nodes[i] will exist in the tree.
+All nodes[i] are distinct.
+class Solution {
+    TreeNode *ans;
+    unordered_set<TreeNode*>st;
+    bool dfs(TreeNode *root){
+        if(!root) return false;
+        bool flag=false;
+        if(st.find(root)!=st.end()) flag=true;
+        auto l=dfs(root->left),r=dfs(root->right);
+        if(l && r){
+            ans=root;
+            return l;
+        }
+        else if(l or r){
+            if(flag) ans=root;
+            return true;
+        }
+        else{
+            if(flag) ans=root;
+            return flag;
+        }
+    }
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, vector<TreeNode*> &nodes) {
+        st.clear();
+        for(auto t:nodes) st.insert(t);
+        dfs(root);
+        return ans;
+    }
+};
+1151. Minimum Swaps to Group All 1's Together
+Given a binary array data, return the minimum number of swaps required to group all 1’s present in the array together in any place in the array.
+
+ 
+
+Example 1:
+
+Input: data = [1,0,1,0,1]
+Output: 1
+Explanation: There are 3 ways to group all 1's together:
+[1,1,1,0,0] using 1 swap.
+[0,1,1,1,0] using 2 swaps.
+[0,0,1,1,1] using 1 swap.
+The minimum is 1.
+Example 2:
+
+Input: data = [0,0,0,1,0]
+Output: 0
+Explanation: Since there is only one 1 in the array, no swaps are needed.
+Example 3:
+
+Input: data = [1,0,1,0,1,0,0,1,1,0,1]
+Output: 3
+Explanation: One possible solution that uses 3 swaps is [0,0,0,0,0,1,1,1,1,1,1].
+ 
+
+Constraints:
+
+1 <= data.length <= 105
+data[i] is either 0 or 1.
+//solution
+class Solution {
+public:
+    int minSwaps(vector<int>& data) {
+        int cnt_1=0;
+        for(int i=0;i<data.size();i++){
+            if(data[i]==1){
+                cnt_1++;
+            }
+        }
+        if(cnt_1==0)return 0;
+        int cnt1=0;
+        int res=INT_MAX;
+        int i=0,j=0;
+        while(j<data.size()){
+            if(j-i+1<cnt_1){
+                if(data[j]==1){
+                    cnt1++;
+                }
+            }else{
+                if(data[j]==1){
+                    cnt1++;
+                }
+                res=min(res,(cnt_1-cnt1));
+                if(data[i]==1){
+                    cnt1--;
+                }
+                i++;
+            }
+            j++;
+        }
+        return res;
+    }
+};
+2519 Count The Number of K-Big Indices
+https://leetcode.com/problems/count-the-number-of-k-big-indices/
+You are given a 0-indexed integer array nums and a positive integer k.
+
+We call an index i k-big if the following conditions are satisfied:
+
+There exist at least k different indices idx1 such that idx1 < i and nums[idx1] < nums[i].
+There exist at least k different indices idx2 such that idx2 > i and nums[idx2] < nums[i].
+Return the number of k-big indices.
+
+ 
+
+Example 1:
+
+Input: nums = [2,3,6,5,2,3], k = 2
+Output: 2
+Explanation: There are only two 2-big indices in nums:
+- i = 2 --> There are two valid idx1: 0 and 1. There are three valid idx2: 2, 3, and 4.
+- i = 3 --> There are two valid idx1: 0 and 1. There are two valid idx2: 3 and 4.
+Example 2:
+
+Input: nums = [1,1,1], k = 3
+Output: 0
+Explanation: There are no 3-big indices in nums.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i], k <= nums.length
+
+//Solution
+#define ll int
+ class fenwick{
+    vector<ll>sum;
+    public:
+    fenwick(ll n){
+        sum.resize(n+1,0);
+    }
+    void add(ll idx,ll e){
+        idx++;
+        ll n=sum.size()-1;
+        for(;idx<=n;idx+=(idx&(-idx))){
+            sum[idx]+=e;
+        }
+    }
+    //find sum from 0 upto idx 
+    ll query(ll idx){
+        if(idx<0) return 0;
+        ll ans=0;
+        idx++;
+        for(;idx>0;idx-=(idx&(-idx))) ans+=sum[idx];
+        return ans;
+    }
+};
+
+class Solution {
+    vector<int> find_prev(vector<int>&nums){
+        int n=nums.size();
+        fenwick f(n);
+        vector<int>ans;
+        for(int i=0;i<n;i++){
+            f.add(nums[i],1);
+            ans.push_back(f.query(nums[i]-1));
+        }
+        reverse(nums.begin(),nums.end());
+        return ans;
+
+    }
+public:
+    int kBigIndices(vector<int>& nums, int k) {
+         auto l=find_prev(nums);
+         auto r=find_prev(nums);
+         reverse(r.begin(),r.end());
+         int ans=0;
+         for(auto t:l) cout<<t<<" ";
+         cout<<endl;
+         for(auto t:r) cout<<t<<" ";
+         cout<<endl;
+         for(int i=0;i<nums.size();i++){
+            if(min(l[i],r[i])>=k) ans++;
+         }
+         return ans;
+    }
+};
+2422. Merge Operations to Turn Aray Into a Palindrome
+https://leetcode.com/problems/merge-operations-to-turn-array-into-a-palindrome/
+
+You are given an array nums consisting of positive integers.
+
+You can perform the following operation on the array any number of times:
+
+Choose any two adjacent elements and replace them with their sum.
+For example, if nums = [1,2,3,1], you can apply one operation to make it [1,5,1].
+Return the minimum number of operations needed to turn the array into a palindrome.
+
+ 
+
+Example 1:
+
+Input: nums = [4,3,2,1,2,3,1]
+Output: 2
+Explanation: We can turn the array into a palindrome in 2 operations as follows:
+- Apply the operation on the fourth and fifth element of the array, nums becomes equal to [4,3,2,3,3,1].
+- Apply the operation on the fifth and sixth element of the array, nums becomes equal to [4,3,2,3,4].
+The array [4,3,2,3,4] is a palindrome.
+It can be shown that 2 is the minimum number of operations needed.
+Example 2:
+
+Input: nums = [1,2,3,4]
+Output: 3
+Explanation: We do the operation 3 times in any position, we obtain the array [10] at the end which is a palindrome.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 106
+
+Approach
+Keep a running sum from left and right, I called them prefix and suffix.
+Also set two pointers to left and right.
+
+While left < right:
+Check all 3 cases:
+
+Left and right sum are equal -> move both pointers
+Left sum > right sum -> move right pointer
+Left sum < right sum -> more left pointer
+
+class Solution {
+public:
+    int minimumOperations(vector<int>& nums) {
+        int n = nums.size();
+        
+        int count = 0;
+
+        long long prefix = nums[0], suffix = nums[n - 1];
+        int left = 0, right = n - 1;
+
+        while (left < right) {
+            if (prefix == suffix) {
+                left++;
+                right--;
+                prefix += nums[left];
+                suffix += nums[right];
+                continue;
+            }
+                
+            if (prefix > suffix) {
+                right--;
+                suffix += nums[right];
+                count++;
+            } else if (prefix < suffix) {
+                left++;
+                prefix += nums[left];
+                count++;
+            }
+        }
+
+        return count;
+    }
+};
+
