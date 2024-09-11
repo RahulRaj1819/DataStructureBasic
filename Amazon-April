@@ -1,0 +1,644 @@
+Q1
+//Time Taken to cross the Door
+There are n persons numbered from 0 to n - 1 and a door. Each person can enter or exit through the door once, taking one second.
+
+You are given a non-decreasing integer array arrival of size n, where arrival[i] is the arrival time of the ith person at the door. You are also given an array state of size n, where state[i] is 0 if person i wants to enter through the door or 1 if they want to exit through the door.
+
+If two or more persons want to use the door at the same time, they follow the following rules:
+
+If the door was not used in the previous second, then the person who wants to exit goes first.
+If the door was used in the previous second for entering, the person who wants to enter goes first.
+If the door was used in the previous second for exiting, the person who wants to exit goes first.
+If multiple persons want to go in the same direction, the person with the smallest index goes first.
+Return an array answer of size n where answer[i] is the second at which the ith person crosses the door.
+
+Note that:
+
+Only one person can cross the door at each second.
+A person may arrive at the door and wait without entering or exiting to follow the mentioned rules.
+ 
+
+Example 1:
+
+Input: arrival = [0,1,1,2,4], state = [0,1,0,0,1]
+Output: [0,3,1,2,4]
+Explanation: At each second we have the following:
+- At t = 0: Person 0 is the only one who wants to enter, so they just enter through the door.
+- At t = 1: Person 1 wants to exit, and person 2 wants to enter. Since the door was used the previous second for entering, person 2 enters.
+- At t = 2: Person 1 still wants to exit, and person 3 wants to enter. Since the door was used the previous second for entering, person 3 enters.
+- At t = 3: Person 1 is the only one who wants to exit, so they just exit through the door.
+- At t = 4: Person 4 is the only one who wants to exit, so they just exit through the door.
+Example 2:
+
+Input: arrival = [0,0,0], state = [1,0,1]
+Output: [0,2,1]
+Explanation: At each second we have the following:
+- At t = 0: Person 1 wants to enter while persons 0 and 2 want to exit. Since the door was not used in the previous second, the persons who want to exit get to go first. Since person 0 has a smaller index, they exit first.
+- At t = 1: Person 1 wants to enter, and person 2 wants to exit. Since the door was used in the previous second for exiting, person 2 exits.
+- At t = 2: Person 1 is the only one who wants to enter, so they just enter through the door.
+
+Solution
+class Solution {
+public:
+    vector<int> timeTaken(vector<int>& arrivals, vector<int>& states) {
+        const int n = arrivals.size();
+        vector<int> answer(n);
+
+        int time = 0, direction = 1;
+        array<deque<int>, 2> queues;
+
+        auto exhaust_until = [&] (int end_time) {
+            while (end_time > time && (!queues[0].empty() || !queues[1].empty())) {
+                if (queues[direction].empty()) {
+                    direction ^= 1;
+                }
+                answer[queues[direction].front()] = time;
+                queues[direction].pop_front();
+                ++time;
+            };
+        };
+
+        for (int i = 0; i < n; ++i) {
+            const auto arrival = arrivals[i], state = states[i];
+            exhaust_until(arrival);
+
+            if (arrival > time) {
+                time = arrival, direction = 1;
+            }
+            queues[state].push_back(i);
+        };
+
+        exhaust_until(200'000);
+        return answer;
+    }
+};
+
+https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iv/
+Q2Given the root of a binary tree and an array of TreeNode objects nodes, return the lowest common ancestor (LCA) of all the nodes in nodes. All the nodes will exist in the tree, and all values of the tree's nodes are unique.
+
+Extending the definition of LCA on Wikipedia: "The lowest common ancestor of n nodes p1, p2, ..., pn in a binary tree T is the lowest node that has every pi as a descendant (where we allow a node to be a descendant of itself) for every valid i". A descendant of a node x is a node y that is on the path from node x to some leaf node.
+
+ 
+
+Example 1:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [4,7]
+Output: 2
+Explanation: The lowest common ancestor of nodes 4 and 7 is node 2.
+Example 2:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [1]
+Output: 1
+Explanation: The lowest common ancestor of a single node is the node itself.
+
+Example 3:
+
+
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], nodes = [7,6,2,4]
+Output: 5
+Explanation: The lowest common ancestor of the nodes 7, 6, 2, and 4 is node 5.
+ 
+
+Constraints:
+
+The number of nodes in the tree is in the range [1, 104].
+-109 <= Node.val <= 109
+All Node.val are unique.
+All nodes[i] will exist in the tree.
+All nodes[i] are distinct.
+
+
+Q1151
+https://leetcode.com/problems/minimum-swaps-to-group-all-1s-together/
+iven a binary array data, return the minimum number of swaps required to group all 1’s present in the array together in any place in the array.
+
+ 
+
+Example 1:
+
+Input: data = [1,0,1,0,1]
+Output: 1
+Explanation: There are 3 ways to group all 1's together:
+[1,1,1,0,0] using 1 swap.
+[0,1,1,1,0] using 2 swaps.
+[0,0,1,1,1] using 1 swap.
+The minimum is 1.
+Example 2:
+
+Input: data = [0,0,0,1,0]
+Output: 0
+Explanation: Since there is only one 1 in the array, no swaps are needed.
+Example 3:
+
+Input: data = [1,0,1,0,1,0,0,1,1,0,1]
+Output: 3
+Explanation: One possible solution that uses 3 swaps is [0,0,0,0,0,1,1,1,1,1,1].
+    int minSwaps(vector<int>& data) {
+        for(int i = 1; i < data.size(); ++i) {
+            data[i] += data[i-1];
+        }
+        int K = data.back();
+        if(K == 0)
+            return 0;
+        // count max number of 1 window size K has
+        int max_one = data[K-1];
+        for(int i = K; i < data.size(); ++i) {
+            max_one = max(max_one, data[i] - data[i-K]);
+        }
+        return K - max_one;
+    }
+
+Q2519
+https://leetcode.com/problems/count-the-number-of-k-big-indices/
+You are given a 0-indexed integer array nums and a positive integer k.
+
+We call an index i k-big if the following conditions are satisfied:
+
+There exist at least k different indices idx1 such that idx1 < i and nums[idx1] < nums[i].
+There exist at least k different indices idx2 such that idx2 > i and nums[idx2] < nums[i].
+Return the number of k-big indices.
+
+ 
+
+Example 1:
+
+Input: nums = [2,3,6,5,2,3], k = 2
+Output: 2
+Explanation: There are only two 2-big indices in nums:
+- i = 2 --> There are two valid idx1: 0 and 1. There are three valid idx2: 2, 3, and 4.
+- i = 3 --> There are two valid idx1: 0 and 1. There are two valid idx2: 3 and 4.
+Example 2:
+
+Input: nums = [1,1,1], k = 3
+Output: 0
+Explanation: There are no 3-big indices in nums.
+
+#define ll int
+ class fenwick{
+    vector<ll>sum;
+    public:
+    fenwick(ll n){
+        sum.resize(n+1,0);
+    }
+    void add(ll idx,ll e){
+        idx++;
+        ll n=sum.size()-1;
+        for(;idx<=n;idx+=(idx&(-idx))){
+            sum[idx]+=e;
+        }
+    }
+    //find sum from 0 upto idx 
+    ll query(ll idx){
+        if(idx<0) return 0;
+        ll ans=0;
+        idx++;
+        for(;idx>0;idx-=(idx&(-idx))) ans+=sum[idx];
+        return ans;
+    }
+};
+
+class Solution {
+    vector<int> find_prev(vector<int>&nums){
+        int n=nums.size();
+        fenwick f(n);
+        vector<int>ans;
+        for(int i=0;i<n;i++){
+            f.add(nums[i],1);
+            ans.push_back(f.query(nums[i]-1));
+        }
+        reverse(nums.begin(),nums.end());
+        return ans;
+
+    }
+public:
+    int kBigIndices(vector<int>& nums, int k) {
+         auto l=find_prev(nums);
+         auto r=find_prev(nums);
+         reverse(r.begin(),r.end());
+         int ans=0;
+         for(auto t:l) cout<<t<<" ";
+         cout<<endl;
+         for(auto t:r) cout<<t<<" ";
+         cout<<endl;
+         for(int i=0;i<nums.size();i++){
+            if(min(l[i],r[i])>=k) ans++;
+         }
+         return ans;
+    }
+};
+
+
+Q2422
+https://leetcode.com/problems/merge-operations-to-turn-array-into-a-palindrome/
+
+You are given an array nums consisting of positive integers.
+
+You can perform the following operation on the array any number of times:
+
+Choose any two adjacent elements and replace them with their sum.
+For example, if nums = [1,2,3,1], you can apply one operation to make it [1,5,1].
+Return the minimum number of operations needed to turn the array into a palindrome.
+
+ 
+
+Example 1:
+
+Input: nums = [4,3,2,1,2,3,1]
+Output: 2
+Explanation: We can turn the array into a palindrome in 2 operations as follows:
+- Apply the operation on the fourth and fifth element of the array, nums becomes equal to [4,3,2,3,3,1].
+- Apply the operation on the fifth and sixth element of the array, nums becomes equal to [4,3,2,3,4].
+The array [4,3,2,3,4] is a palindrome.
+It can be shown that 2 is the minimum number of operations needed.
+Example 2:
+
+Input: nums = [1,2,3,4]
+Output: 3
+Explanation: We do the operation 3 times in any position, we obtain the array [10] at the end which is a palindrome.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 106
+
+class Solution {
+public:
+    int minimumOperations(vector<int>& nums) {
+        int n = nums.size();
+        
+        int count = 0;
+
+        long long prefix = nums[0], suffix = nums[n - 1];
+        int left = 0, right = n - 1;
+
+        while (left < right) {
+            if (prefix == suffix) {
+                left++;
+                right--;
+                prefix += nums[left];
+                suffix += nums[right];
+                continue;
+            }
+                
+            if (prefix > suffix) {
+                right--;
+                suffix += nums[right];
+                count++;
+            } else if (prefix < suffix) {
+                left++;
+                prefix += nums[left];
+                count++;
+            }
+        }
+
+        return count;
+    }
+};
+
+Q 2408
+https://leetcode.com/problems/design-sql/
+You are given n tables represented with two arrays names and columns, where names[i] is the name of the ith table and columns[i] is the number of columns of the ith table.
+
+You should be able to perform the following operations:
+
+Insert a row in a specific table. Each row you insert has an id. The id is assigned using an auto-increment method where the id of the first inserted row is 1, and the id of each other row inserted into the same table is the id of the last inserted row (even if it was deleted) plus one.
+Delete a row from a specific table. Note that deleting a row does not affect the id of the next inserted row.
+Select a specific cell from any table and return its value.
+Implement the SQL class:
+
+SQL(String[] names, int[] columns) Creates the n tables.
+void insertRow(String name, String[] row) Adds a row to the table name. It is guaranteed that the table will exist, and the size of the array row is equal to the number of columns in the table.
+void deleteRow(String name, int rowId) Removes the row rowId from the table name. It is guaranteed that the table and row will exist.
+String selectCell(String name, int rowId, int columnId) Returns the value of the cell in the row rowId and the column columnId from the table name.
+ 
+
+Example 1:
+
+Input
+["SQL", "insertRow", "selectCell", "insertRow", "deleteRow", "selectCell"]
+[[["one", "two", "three"], [2, 3, 1]], ["two", ["first", "second", "third"]], ["two", 1, 3], ["two", ["fourth", "fifth", "sixth"]], ["two", 1], ["two", 2, 2]]
+Output
+[null, null, "third", null, null, "fifth"]
+
+Explanation
+SQL sql = new SQL(["one", "two", "three"], [2, 3, 1]); // creates three tables.
+sql.insertRow("two", ["first", "second", "third"]); // adds a row to the table "two". Its id is 1.
+sql.selectCell("two", 1, 3); // return "third", finds the value of the third column in the row with id 1 of the table "two".
+sql.insertRow("two", ["fourth", "fifth", "sixth"]); // adds another row to the table "two". Its id is 2.
+sql.deleteRow("two", 1); // deletes the first row of the table "two". Note that the second row will still have the id 2.
+sql.selectCell("two", 2, 2); // return "fifth", finds the value of the second column in the row with id 2 of the table "two".
+ 
+
+Constraints:
+
+n == names.length == columns.length
+1 <= n <= 104
+1 <= names[i].length, row[i].length, name.length <= 20
+names[i], row[i], and name consist of lowercase English letters.
+1 <= columns[i] <= 100
+All the strings of names are distinct.
+name exists in the array names.
+row.length equals the number of columns in the chosen table.
+rowId and columnId will be valid.
+At most 250 calls will be made to insertRow and deleteRow.
+At most 104 calls will be made to selectCell.
+
+Solution:
+#include <sstream>
+using namespace std;
+
+using ROW = vector<string>;
+using ROW_ID = int32_t;
+using COL_ID = int32_t;
+struct Table{
+    COL_ID cols = 0;
+    ROW_ID count = 0;
+    unordered_map<ROW_ID, ROW> data;
+
+    Table(int columns) : cols(columns), count(0) {;}
+
+    ROW_ID nextRowId(){
+        return ++ count;
+    }
+
+    ROW_ID insert(const vector<string> &row){
+        if(row.size() != cols){
+            throw runtime_error("unmatched columns");
+        }
+        ROW_ID nxtId = nextRowId();
+        data.insert({nxtId, row});
+        return nxtId;
+    }
+
+    ROW_ID delRow(int rowId){
+        if(rowId > count){
+            return -1;
+        }
+
+        data.erase(rowId);
+        return rowId;
+    }
+
+    pair<bool, string> cellValue(ROW_ID rowId, COL_ID colId) const{
+        if(rowId > count || colId > cols)
+            return {false, "unmatched row/col ID"};
+        
+        return {true, data.at(rowId).at(colId - 1)};
+    }
+};
+
+
+class SQL {
+private:
+    unordered_map<string, Table> tables;
+
+public:
+    SQL(vector<string>& names, vector<int>& columns) {
+        for(int i=0; i<names.size(); ++i){
+            tables.insert({names[i], Table(columns[i])});
+        }
+    }
+    
+    void insertRow(string name, vector<string> row) {
+        auto it = tables.find(name);
+        if(it != tables.end()){
+            try {
+                ROW_ID nxtId = it->second.insert(row);
+            } catch (const runtime_error &err) {
+                stringstream oss;
+                oss << "Failed to insert row into table: " << name << ", due to: " << err.what();
+                throw runtime_error(oss.str());
+            }
+            return;
+        }
+
+        stringstream oss; oss << "missing name: " <<  name;
+        throw runtime_error(oss.str());
+    }
+    
+    void deleteRow(string name, int rowId) {
+        auto it = tables.find(name);
+        if(it != tables.end()){
+            ROW_ID idx = it->second.delRow(rowId);
+            
+            if(idx != rowId){
+                stringstream oss; oss << "Failed to delete row: " << rowId;
+                throw runtime_error(oss.str());
+            }
+            return;
+        }
+
+        throw runtime_error("missing name: " + name);
+        
+    }
+    
+    string selectCell(string name, int rowId, int columnId) const {
+        auto it = tables.find(name);
+        if(it != tables.end()){
+            auto [status, val] = it->second.cellValue(rowId, columnId);
+            if(status)
+                return val;
+        }
+        stringstream oss;
+        oss << "Failed to select the cell at: [" << rowId << "," << columnId << "]";
+        throw runtime_error(oss.str());
+    }
+};
+Q 2355
+https://leetcode.com/problems/maximum-number-of-books-you-can-take/
+ou are given a 0-indexed integer array books of length n where books[i] denotes the number of books on the ith shelf of a bookshelf.
+
+You are going to take books from a contiguous section of the bookshelf spanning from l to r where 0 <= l <= r < n. For each index i in the range l <= i < r, you must take strictly fewer books from shelf i than shelf i + 1.
+
+Return the maximum number of books you can take from the bookshelf.
+
+ 
+
+Example 1:
+
+Input: books = [8,5,2,7,9]
+Output: 19
+Explanation:
+- Take 1 book from shelf 1.
+- Take 2 books from shelf 2.
+- Take 7 books from shelf 3.
+- Take 9 books from shelf 4.
+You have taken 19 books, so return 19.
+It can be proven that 19 is the maximum number of books you can take.
+Example 2:
+
+Input: books = [7,0,3,4,5]
+Output: 12
+Explanation:
+- Take 3 books from shelf 2.
+- Take 4 books from shelf 3.
+- Take 5 books from shelf 4.
+You have taken 12 books so return 12.
+It can be proven that 12 is the maximum number of books you can take.
+Example 3:
+
+Input: books = [8,2,3,7,3,4,0,1,4,3]
+Output: 13
+Explanation:
+- Take 1 book from shelf 0.
+- Take 2 books from shelf 1.
+- Take 3 books from shelf 2.
+- Take 7 books from shelf 3.
+You have taken 13 books so return 13.
+It can be proven that 13 is the maximum number of books you can take.
+ 
+
+Constraints:
+
+1 <= books.length <= 105
+0 <= books[i] <= 105
+ solution:
+class Solution {
+public:
+    long long maximumBooks(vector<int>& books) {
+        int n = books.size();
+
+        // Helper function to calculate the sum of books in a given range [l, r]
+        auto calculateSum = [&](int l, int r) {
+            long long cnt = min(books[r], r - l + 1);
+            return (2 * books[r] - (cnt - 1)) * cnt / 2;
+        };
+
+        stack<int> s;
+        vector<long long> dp(n);
+
+        for (int i = 0; i < n; i++) {
+            // While we cannot push i, we pop from the stack
+            while (!s.empty() && books[s.top()] - s.top() >= books[i] - i) {
+                s.pop();
+            }
+
+            // Compute dp[i]
+            if (s.empty()) {
+                dp[i] = calculateSum(0, i);
+            }
+            else {
+                int j = s.top();
+                dp[i] = dp[j] + calculateSum(j + 1, i);
+            }
+
+            // Push the current index onto the stack
+            s.push(i);
+        }
+
+        // Return the maximum element in dp array
+        return *max_element(dp.begin(), dp.end());
+    }
+};
+Q 2340
+https://leetcode.com/problems/minimum-adjacent-swaps-to-make-a-valid-array/
+you are given a 0-indexed integer array nums.
+
+Swaps of adjacent elements are able to be performed on nums.
+
+A valid array meets the following conditions:
+
+The largest element (any of the largest elements if there are multiple) is at the rightmost position in the array.
+The smallest element (any of the smallest elements if there are multiple) is at the leftmost position in the array.
+Return the minimum swaps required to make nums a valid array.
+
+ 
+
+Example 1:
+
+Input: nums = [3,4,5,5,3,1]
+Output: 6
+Explanation: Perform the following swaps:
+- Swap 1: Swap the 3rd and 4th elements, nums is then [3,4,5,3,5,1].
+- Swap 2: Swap the 4th and 5th elements, nums is then [3,4,5,3,1,5].
+- Swap 3: Swap the 3rd and 4th elements, nums is then [3,4,5,1,3,5].
+- Swap 4: Swap the 2nd and 3rd elements, nums is then [3,4,1,5,3,5].
+- Swap 5: Swap the 1st and 2nd elements, nums is then [3,1,4,5,3,5].
+- Swap 6: Swap the 0th and 1st elements, nums is then [1,3,4,5,3,5].
+It can be shown that 6 swaps is the minimum swaps required to make a valid array.
+Example 2:
+Input: nums = [9]
+Output: 0
+Explanation: The array is already valid, so we return 0.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 105
+
+Solution:
+class Solution {
+public:
+    int minimumSwaps(vector<int>& nums) {
+        int mx=*max_element(nums.begin(),nums.end()),mn=*min_element(nums.begin(),nums.end());
+        int l=0,r=nums.size()-1;
+        while(nums[l]!=mn) l++;
+        while(nums[r]!=mx) r--;
+        int k=(l<=r?0:-1);
+        return l+nums.size()-1-r+k;
+    }
+};
+
+
+Q2330
+https://leetcode.com/problems/valid-palindrome-iv/
+You are given a 0-indexed string s consisting of only lowercase English letters. In one operation, you can change any character of s to any other character.
+
+Return true if you can make s a palindrome after performing exactly one or two operations, or return false otherwise.
+
+ 
+
+Example 1:
+
+Input: s = "abcdba"
+Output: true
+Explanation: One way to make s a palindrome using 1 operation is:
+- Change s[2] to 'd'. Now, s = "abddba".
+One operation could be performed to make s a palindrome so return true.
+Example 2:
+
+Input: s = "aa"
+Output: true
+Explanation: One way to make s a palindrome using 2 operations is:
+- Change s[0] to 'b'. Now, s = "ba".
+- Change s[1] to 'b'. Now, s = "bb".
+Two operations could be performed to make s a palindrome so return true.
+Example 3:
+
+Input: s = "abcdef"
+Output: false
+Explanation: It is not possible to make s a palindrome using one or two operations so return false.
+ 
+
+Constraints:
+
+1 <= s.length <= 105
+s consists only of lowercase English letters.
+class Solution {
+public:
+    bool makePalindrome(string input) {
+        int start=0;
+        int end=input.size()-1;
+        int count=0;
+        while(start<end){
+            if(input[start]!=input[end]){
+                count++;
+            }
+            start++;
+            end--;
+        }
+        if(count<=2){
+            return true;
+        }
+        return false;
+    }
+};
+
+
+
+
+
