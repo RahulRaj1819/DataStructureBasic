@@ -1,0 +1,315 @@
+
+2323. Find Minimum Time to Finish All Jobs II
+https://leetcode.com/problems/find-minimum-time-to-finish-all-jobs-ii/
+You are given two 0-indexed integer arrays jobs and workers of equal length, where jobs[i] is the amount of time needed to complete the ith job, and workers[j] is the amount of time the jth worker can work each day.
+
+Each job should be assigned to exactly one worker, such that each worker completes exactly one job.
+
+Return the minimum number of days needed to complete all the jobs after assignment.
+
+ 
+
+Example 1:
+
+Input: jobs = [5,2,4], workers = [1,7,5]
+Output: 2
+Explanation:
+- Assign the 2nd worker to the 0th job. It takes them 1 day to finish the job.
+- Assign the 0th worker to the 1st job. It takes them 2 days to finish the job.
+- Assign the 1st worker to the 2nd job. It takes them 1 day to finish the job.
+It takes 2 days for all the jobs to be completed, so return 2.
+It can be proven that 2 days is the minimum number of days needed.
+Example 2:
+
+Input: jobs = [3,18,15,9], workers = [6,5,1,3]
+Output: 3
+Explanation:
+- Assign the 2nd worker to the 0th job. It takes them 3 days to finish the job.
+- Assign the 0th worker to the 1st job. It takes them 3 days to finish the job.
+- Assign the 1st worker to the 2nd job. It takes them 3 days to finish the job.
+- Assign the 3rd worker to the 3rd job. It takes them 3 days to finish the job.
+It takes 3 days for all the jobs to be completed, so return 3.
+It can be proven that 3 days is the minimum number of days needed.
+ 
+
+Constraints:
+
+n == jobs.length == workers.length
+1 <= n <= 105
+1 <= jobs[i], workers[i] <= 105
+
+/Solution
+class Solution {
+public:
+    int minimumTime(vector<int>& jobs, vector<int>& workers) {
+        sort(jobs.begin(), jobs.end());
+        sort(workers.begin(), workers.end());
+        int minTime = 0;
+        for (int i = 0; i < jobs.size(); i++) {
+            int duration = ceil((double) jobs[i] / (double) workers[i]);
+            minTime = max(minTime, duration);
+        }
+        return minTime;
+    }
+};
+
+Q2297  
+https://leetcode.com/problems/jump-game-viii/
+
+ou are given a 0-indexed integer array nums of length n. You are initially standing at index 0. You can jump from index i to index j where i < j if:
+
+nums[i] <= nums[j] and nums[k] < nums[i] for all indexes k in the range i < k < j, or
+nums[i] > nums[j] and nums[k] >= nums[i] for all indexes k in the range i < k < j.
+You are also given an integer array costs of length n where costs[i] denotes the cost of jumping to index i.
+
+Return the minimum cost to jump to the index n - 1.
+
+ 
+
+Example 1:
+
+Input: nums = [3,2,4,4,1], costs = [3,7,6,4,2]
+Output: 8
+Explanation: You start at index 0.
+- Jump to index 2 with a cost of costs[2] = 6.
+- Jump to index 4 with a cost of costs[4] = 2.
+The total cost is 8. It can be proven that 8 is the minimum cost needed.
+Two other possible paths are from index 0 -> 1 -> 4 and index 0 -> 2 -> 3 -> 4.
+These have a total cost of 9 and 12, respectively.
+Example 2:
+
+Input: nums = [0,1,2], costs = [1,1,1]
+Output: 2
+Explanation: Start at index 0.
+- Jump to index 1 with a cost of costs[1] = 1.
+- Jump to index 2 with a cost of costs[2] = 1.
+The total cost is 2. Note that you cannot jump directly from index 0 to index 2 because nums[0] <= nums[1].
+ 
+
+Constraints:
+
+n == nums.length == costs.length
+1 <= n <= 105
+0 <= nums[i], costs[i] <= 105
+
+Solution:
+class Solution {
+public:
+    long long minCost(vector<int>& nums, vector<int>& costs) {
+        int n = nums.size();
+        stack<int> incst, decst;
+        vector<int> incv(n, -1), decv(n, -1);
+        for(int i = 0; i < n; ++i) {
+            while(!incst.empty() && nums[incst.top()] <= nums[i]) {
+                incv[incst.top()] = i;
+                incst.pop();
+            }
+            incst.push(i);
+            while(!decst.empty() && nums[decst.top()] > nums[i]) {
+                decv[decst.top()] = i;
+                decst.pop();
+            }
+            decst.push(i);
+        }
+
+        vector<long long> dp(n, LONG_LONG_MAX);
+        dp[0] = 0;
+        for(int i = 0; i < n; ++i) {
+            if(incv[i] != -1) {
+                dp[incv[i]] = min(dp[incv[i]], dp[i] + costs[incv[i]]);
+            }
+            if(decv[i] != -1) {
+                dp[decv[i]] = min(dp[decv[i]], dp[i] + costs[decv[i]]);
+            }
+        }
+        return dp[n - 1];
+    }
+};
+
+
+https://leetcode.com/problems/kids-with-the-greatest-number-of-candies/
+There are n kids with candies. You are given an integer array candies, where each candies[i] represents the number of candies the ith kid has, and an integer extraCandies, denoting the number of extra candies that you have.
+
+Return a boolean array result of length n, where result[i] is true if, after giving the ith kid all the extraCandies, they will have the greatest number of candies among all the kids, or false otherwise.
+
+Note that multiple kids can have the greatest number of candies.
+
+ 
+
+Example 1:
+
+Input: candies = [2,3,5,1,3], extraCandies = 3
+Output: [true,true,true,false,true] 
+Explanation: If you give all extraCandies to:
+- Kid 1, they will have 2 + 3 = 5 candies, which is the greatest among the kids.
+- Kid 2, they will have 3 + 3 = 6 candies, which is the greatest among the kids.
+- Kid 3, they will have 5 + 3 = 8 candies, which is the greatest among the kids.
+- Kid 4, they will have 1 + 3 = 4 candies, which is not the greatest among the kids.
+- Kid 5, they will have 3 + 3 = 6 candies, which is the greatest among the kids.
+Example 2:
+
+Input: candies = [4,2,1,1,2], extraCandies = 1
+Output: [true,false,false,false,false] 
+Explanation: There is only 1 extra candy.
+Kid 1 will always have the greatest number of candies, even if a different kid is given the extra candy.
+Example 3:
+
+Input: candies = [12,1,12], extraCandies = 10
+Output: [true,false,true]
+ 
+
+Constraints:
+
+n == candies.length
+2 <= n <= 100
+1 <= candies[i] <= 100
+1 <= extraCandies <= 50
+
+//
+Q2307
+https://leetcode.com/problems/check-for-contradictions-in-equations/
+Check for Contradictions in equations
+You are given a 2D array of strings equations and an array of real numbers values, where equations[i] = [Ai, Bi] and values[i] means that Ai / Bi = values[i].
+
+Determine if there exists a contradiction in the equations. Return true if there is a contradiction, or false otherwise.
+
+Note:
+
+When checking if two numbers are equal, check that their absolute difference is less than 10-5.
+The testcases are generated such that there are no cases targeting precision, i.e. using double is enough to solve the problem.
+ 
+
+Example 1:
+
+Input: equations = [["a","b"],["b","c"],["a","c"]], values = [3,0.5,1.5]
+Output: false
+Explanation:
+The given equations are: a / b = 3, b / c = 0.5, a / c = 1.5
+There are no contradictions in the equations. One possible assignment to satisfy all equations is:
+a = 3, b = 1 and c = 2.
+Example 2:
+
+Input: equations = [["le","et"],["le","code"],["code","et"]], values = [2,5,0.5]
+Output: true
+Explanation:
+The given equations are: le / et = 2, le / code = 5, code / et = 0.5
+Based on the first two equations, we get code / et = 0.4.
+Since the third equation is code / et = 0.5, we get a contradiction.
+ 
+
+Constraints:
+
+1 <= equations.length <= 100
+equations[i].length == 2
+1 <= Ai.length, Bi.length <= 5
+Ai, Bi consist of lowercase English letters.
+equations.length == values.length
+0.0 < values[i] <= 10.0
+values[i] has a maximum of 2 decimal places.
+
+//SOLUTION
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <cmath> // Include this for fabs function
+
+using namespace std;
+
+class Solution {
+public:
+    bool checkContradictions(vector<vector<string>>& equations, vector<double>& values) {
+        unordered_map<string, double> mp;
+        int n = equations.size();
+        for (int i = 0; i < n; i++) {
+            if (mp.find(equations[i][0]) != mp.end()) continue;
+            mp[equations[i][0]] = values[i];
+            mp[equations[i][1]] = 1;
+            for(int k=0;k<n;k++)
+            for (int j = 0; j < n; j++) {
+                if (mp.find(equations[j][0]) != mp.end()) {
+                    if (mp.find(equations[j][1]) == mp.end()) {
+                        mp[equations[j][1]] = mp[equations[j][0]] / values[j];
+                    } else if (fabs(mp[equations[j][1]] - (mp[equations[j][0]] / values[j])) >= 0.00001) {
+                        return true;
+                    }
+                } else if (mp.find(equations[j][1]) != mp.end()) {
+                    if (mp.find(equations[j][0]) == mp.end()) {
+                        mp[equations[j][0]] = mp[equations[j][1]] * values[j];
+                    } else if (fabs(mp[equations[j][0]] - (mp[equations[j][1]] * values[j])) >= 0.00001) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+};
+
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <cmath> // Include this for fabs function
+
+using namespace std;
+
+class Solution {
+public:
+    bool checkContradictions(vector<vector<string>>& equations, vector<double>& values) {
+        unordered_map<string, double> mp;
+        int n = equations.size();
+        for (int i = 0; i < n; i++) {
+            if (mp.find(equations[i][0]) != mp.end()) continue;
+            mp[equations[i][0]] = values[i];
+            mp[equations[i][1]] = 1;
+            for(int k=0;k<n;k++)
+            for (int j = 0; j < n; j++) {
+                if (mp.find(equations[j][0]) != mp.end()) {
+                    if (mp.find(equations[j][1]) == mp.end()) {
+                        mp[equations[j][1]] = mp[equations[j][0]] / values[j];
+                    } else if (fabs(mp[equations[j][1]] - (mp[equations[j][0]] / values[j])) >= 0.00001) {
+                        return true;
+                    }
+                } else if (mp.find(equations[j][1]) != mp.end()) {
+                    if (mp.find(equations[j][0]) == mp.end()) {
+                        mp[equations[j][0]] = mp[equations[j][1]] * values[j];
+                    } else if (fabs(mp[equations[j][0]] - (mp[equations[j][1]] * values[j])) >= 0.00001) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+};
+
+Q2268
+https://leetcode.com/problems/minimum-number-of-keypresses/
+You have a keypad with 9 buttons, numbered from 1 to 9, each mapped to lowercase English letters. You can choose which characters each button is matched to as long as:
+
+All 26 lowercase English letters are mapped to.
+Each character is mapped to by exactly 1 button.
+Each button maps to at most 3 characters.
+To type the first character matched to a button, you press the button once. To type the second character, you press the button twice, and so on.
+
+Given a string s, return the minimum number of keypresses needed to type s using your keypad.
+
+Note that the characters mapped to by each button, and the order they are mapped in cannot be changed.
+
+ class Solution {
+public:
+    int minimumKeypresses(string s) {
+        int freq[26]={0};
+        for(auto t:s){
+            freq[t-'a']++;
+        }
+        sort(freq,freq+26,greater<int>()); 
+        int v=0,cnt=0;
+        for(int i=0;i<26;i++){
+            if(i%9==0) v++; 
+            cnt+=v*freq[i]; 
+        }
+        return cnt;
+    }
+};
+
+
