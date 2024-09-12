@@ -1,0 +1,152 @@
+//Remove Duplicates in-place from sorted array
+//brush force
+1 apporach
+Declare a HashSet.
+Run a for loop from starting to the end.
+Put every element of the array in the set.
+Store size of the set in a variable K.
+Now put all elements of the set in the array from the starting of the array.
+//for(auto x: st) arr[j] =x; j++;
+Return K.
+2 approach
+2pointer approach
+Take a variable i as 0;
+Use a for loop by using a variable ‘j’ from 1 to length of the array.
+If arr[j] != arr[i], increase ‘i’ and update arr[i] == arr[j].
+ After completion of the loop return i+1, i.e size of the array of unique elements.
+
+int fn(arr[],int n){
+int i =0; 
+for(int i =0; i<n; i++){
+if(arr[i] != arr[j]){
+i++;
+//update
+arr[i] = arr[j]
+     }
+   }
+return i+1;
+}
+
+
+Q2Union of Two Sorted Arrays
+
+
+232
+
+8
+Problem Statement: Given two sorted arrays, arr1, and arr2 of size n and m. Find the union of two sorted arrays.
+
+The union of two arrays can be defined as the common and distinct elements in the two arrays.NOTE: Elements in the union should be in ascending order.
+Solution 1: Using Map
+Our aim is to find the common elements in arr1 and arr2, and the distinct elements of arr1,arr2. Use a Single map to find the frequencies of elements in arr1 and arr2.
+
+As we are using only a single map the common element in arr1 and arr2 are treated as a single element for finding frequency, so there would be no duplicates.
+
+Solution 2: Using Set
+Suppose we consider arr1 and arr2 as a single array say arr,  then the union of arr1 and arr2 is the distinct elements in arr
+
+
+Solution 3: Two Pointers
+Solution 1 and 2 work for the unsorted arrays also, The arrays arr1 and arr2 are sorted, can we use this property to reduce the time Complexity?
+
+Using the property that the arrays are sorted we can bring down the time complexity from
+
+O((m+n)log(m+n))    TO    O(m+n).
+Approach:
+Take two pointers let’s say i,j pointing to the 0th index of arr1 and arr2.
+Create an empty vector for storing the union of arr1 and arr2.
+From solution 2 we know that the union is nothing but the distinct elements in arr1 + arr2 
+Let’s traverse the arr1 and arr2 using pointers i and j and insert the distinct elements found into the union vector.
+While traversing we may encounter three cases.
+
+//find duplicate number
+////Brute Force
+
+class Solution {
+    public int findDuplicate(int[] nums) {
+        for(int i=0;i<nums.length;i++)
+            for(int j=i+1;j<nums.length;j++)
+                if(nums[i] == nums[j]) return nums[i];
+        return -1;
+    }
+}
+approach
+//Sort the array and check adjacent elements
+class Solution {
+    public int findDuplicate(int[] nums) {
+        Arrays.sort(nums);
+        for(int i=0;i<nums.length-1;i++)
+            if(nums[i] == nums[i+1]) return nums[i];
+        return -1;
+    }
+}
+//using hashset to store visited nodes
+class Solution {
+    public int findDuplicate(int[] nums) {
+        Set<Integer> set = new HashSet();
+        for(int i=0;i<nums.length;i++) {
+            if(set.contains(nums[i])) return nums[i];
+            set.add(nums[i]);
+        }
+        return -1;
+    }
+}
+//using boolean array
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int n = nums.length;
+        boolean[] set = new boolean[n+1];
+        for(int i=0;i<n;i++) {
+            if(set[nums[i]]) return nums[i];
+            set[nums[i]] = true;
+        }
+        return -1;
+    }
+}
+//Mark visited element negative
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        for (int i = 0; i < nums.size(); i++) {
+            int ind = abs(nums[i]);
+            if (nums[ind] < 0) {
+                return ind;
+            }
+            nums[ind] = -nums[ind];
+        }
+        return -1;
+    }
+};
+//using MOD(1e5+1)
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int mod = (int)1e5 + 1;
+        for(int i=0;i<nums.length;i++) {
+            int ind = Math.abs(nums[i])%mod;
+            if(nums[ind]/mod > 0) {
+                return ind;
+            }
+            nums[ind] += mod;
+        }
+        return -1;
+    }
+}
+//Hare & Tortoise Method
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        int slow = nums[0];
+        int fast = nums[0];
+        do {
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+        } while (slow != fast);
+        
+        fast = nums[0];
+        while (slow != fast) {
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return fast;
+    }
+};
