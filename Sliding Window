@@ -1,0 +1,88 @@
+//subarray + window + largest
+//sliding window concept
+//static sliding window
+//variable sliding window
+
+ //fixed size window
+ 
+ //max /min subarray of size k 
+ //1st -ve in every min size of k 
+ //count occurence of anagram
+ //move of all subarray of size k 
+ //move of mini for every mini size
+ 
+ 
+ //variable size window
+ 
+ //largest /smallest subarray with sum k 
+ //largest sub-string k distinct character
+ //larger of largest sub element no repeating character
+ // pick toy
+ //minimum window sub-string
+ 
+ //identifiaction
+ 
+    /* arr/string
+    subarray/sub-string
+     window size/condition*/
+     
+     //maximum subarray  sum of size k 
+  
+  // 2 5 1 8 2 9 1
+   
+ // 251 518 182 829 291 ->sliding window
+ 
+// 251 start =2 ans end = 1 window size = end-start+1 = 2-0+1 = 3 
+
+//check((e-s+1)<k ) e++;
+//check (e-s+1 == k) //calculation   (sum) i++; j++;
+//j =end of the window  and i = start of the window 
+//first think about the array size 
+ 
+ //largest /smallest subarray with sum k 
+ int fun(vector<int>&arr,int size,int k){
+int sum =0;
+int maxi = INT_MIN;
+while(j< size){
+    sum += arr[j];
+    if(j-i+1 < k){
+        j++;
+    }
+    else if(j+i+1 == k){
+        maxi = max(sum,maxi);
+        sum = sum-arr[i];
+         j++;  i++;
+    }
+}
+return maxi;
+}
+
+// 1st -ve in every min size of k input 12 -1 -7 8 -15 3- 16 28
+int fn(vector<int>&arr,int k,int n){
+    list<int>l;
+    while(j<size){
+          //challengage
+    //first -ve number
+    if(arr[j] < 0){
+         //first store all the negative number
+         l.push_back(arr[j]);
+    }
+     if(j-i+1 < K){
+         j++}
+         
+         else if(j-i+1 == k){
+              //calculation->ans
+              if(l.size() == 0) return 0;
+             else  v.push_back(l.front());
+              }
+              //slide window
+              l.pop_front(); i++; 
+              if(arr[i] <0) l.pop_front()); 
+              i++;
+              j++;
+           }
+           return ans;
+        }
+    }
+
+
