@@ -1,0 +1,467 @@
+
+//Level Hard
+1. https://leetcode.com/problems/operations-on-tree/
+1993 Operations on tree
+You are given a tree with n nodes numbered from 0 to n - 1 in the form of a parent array parent where parent[i] is the parent of the ith node. The root of the tree is node 0, so parent[0] = -1 since it has no parent. You want to design a data structure that allows users to lock, unlock, and upgrade nodes in the tree.
+
+The data structure should support the following functions:
+
+Lock: Locks the given node for the given user and prevents other users from locking the same node. You may only lock a node using this function if the node is unlocked.
+Unlock: Unlocks the given node for the given user. You may only unlock a node using this function if it is currently locked by the same user.
+Upgrade: Locks the given node for the given user and unlocks all of its descendants regardless of who locked it. You may only upgrade a node if all 3 conditions are true:
+The node is unlocked,
+It has at least one locked descendant (by any user), and
+It does not have any locked ancestors.
+Implement the LockingTree class:
+
+LockingTree(int[] parent) initializes the data structure with the parent array.
+lock(int num, int user) returns true if it is possible for the user with id user to lock the node num, or false otherwise. If it is possible, the node num will become locked by the user with id user.
+unlock(int num, int user) returns true if it is possible for the user with id user to unlock the node num, or false otherwise. If it is possible, the node num will become unlocked.
+upgrade(int num, int user) returns true if it is possible for the user with id user to upgrade the node num, or false otherwise. If it is possible, the node num will be upgraded.
+ 
+
+Example 1:
+
+
+Input
+["LockingTree", "lock", "unlock", "unlock", "lock", "upgrade", "lock"]
+[[[-1, 0, 0, 1, 1, 2, 2]], [2, 2], [2, 3], [2, 2], [4, 5], [0, 1], [0, 1]]
+Output
+[null, true, false, true, true, true, false]
+
+Explanation
+LockingTree lockingTree = new LockingTree([-1, 0, 0, 1, 1, 2, 2]);
+lockingTree.lock(2, 2);    // return true because node 2 is unlocked.
+                           // Node 2 will now be locked by user 2.
+lockingTree.unlock(2, 3);  // return false because user 3 cannot unlock a node locked by user 2.
+lockingTree.unlock(2, 2);  // return true because node 2 was previously locked by user 2.
+                           // Node 2 will now be unlocked.
+lockingTree.lock(4, 5);    // return true because node 4 is unlocked.
+                           // Node 4 will now be locked by user 5.
+lockingTree.upgrade(0, 1); // return true because node 0 is unlocked and has at least one locked descendant (node 4).
+                           // Node 0 will now be locked by user 1 and node 4 will now be unlocked.
+lockingTree.lock(0, 1);    // return false because node 0 is already locked.
+ 
+
+Constraints:
+
+n == parent.length
+2 <= n <= 2000
+0 <= parent[i] <= n - 1 for i != 0
+parent[0] == -1
+0 <= num <= n - 1
+1 <= user <= 104
+parent represents a valid tree.
+At most 2000 calls in total will be made to lock, unlock, and upgrade.
+
+
+solution:
+class LockingTree {
+public:
+    
+    vector<int> m;
+    vector<vector<int>> children;
+    vector<int> parent;
+    
+    LockingTree(vector<int>& parent) {
+        m = vector<int>(parent.size());
+        children = vector<vector<int>>(parent.size());
+        this->parent = parent;
+        for(int i = 0; i < parent.size(); i++){
+            if(parent[i] == -1)continue;
+            children[parent[i]].push_back(i);
+        }
+    }
+    
+    bool lock(int num, int user) {
+        if(m[num] > 0)return false; //already locked
+        m[num] = user;              //node is locked by user
+        return true;
+    }
+    
+    bool unlock(int num, int user) {
+        if(m[num] != user)return false; //node is locked by some other user
+        if(m[num] == 0)return false;    //node is not locked at all
+        m[num] = 0;                     //unlock the lock and return true
+        return true;
+    }
+    
+    bool upgrade(int num, int user) {
+        int k = num;
+        while(k != -1){
+            if(m[k] > 0)return false;   //atleast one of the ancestor is locked and hence return false
+            k = parent[k];
+        }
+        
+        //bfs
+        queue<int> q;
+        q.push(num);
+        
+        bool flag = false;
+        while(!q.empty()){
+            auto z = q.front();
+            q.pop();
+            for(auto i: children[z]){
+                if(m[i] > 0){   //atleast one in descendants is locked, hence flag is true
+                    m[num] = user;
+                    m[i] = 0;   //unlock it
+                    flag = true;
+                }
+                q.push(i);
+            }
+        }
+        
+        if(flag)return true;
+        return false;
+        
+    }
+};
+
+/**
+ * Your LockingTree object will be instantiated and called as such:
+ * LockingTree* obj = new LockingTree(parent);
+ * bool param_1 = obj->lock(num,user);
+ * bool param_2 = obj->unlock(num,user);
+ * bool param_3 = obj->upgrade(num,user);
+ */
+
+using map
+class LockingTree {
+public:
+    unordered_map<int, vector<int>> descendents;
+    vector<vector<int>> Node;
+    /*
+        Node[i][0] = parent[i]
+        Node[i][1] = -1; (means unlocked)
+        Node[i][1] = x;  (means locked by user x)
+    */
+    int n;
+    LockingTree(vector<int>& parent) {
+        n = parent.size();
+        Node.resize(n, vector<int>(2, -1));
+        
+        Node[0][0] = -1; //root has no parent
+        for(int i = 1; i<n; i++) {
+            Node[i][0] = parent[i];
+            descendents[parent[i]].push_back(i);            
+        }
+    }
+    
+    bool lock(int num, int user) {
+        if(Node[num][1] != -1) return false;
+        
+        Node[num][1] = user;
+        return true;
+    }
+    
+    bool unlock(int num, int user) {
+        if(Node[num][1] != user) return false;
+        
+        Node[num][1] = -1;
+        return true;
+    }
+    
+    //Condition-2 (Atleast one descendent should be locked)
+    void checkDescendents(int num, bool& atleastOne) {
+        if(descendents.count(num) == 0 || descendents[num].size() == 0)
+            return;
+        
+        for(int& x : descendents[num]) {
+            if(Node[x][1] != -1) {
+                atleastOne = true;
+                return;
+            }
+            checkDescendents(x, atleastOne);
+        }
+    }
+    
+    //Condition-3 (Check if any ancestor is locked)
+    bool IsAnyAncestorLocked(int& num) {
+        if(num == -1)
+            return false; //you reached end and found none locked
+        
+        return Node[num][1] != -1 || IsAnyAncestorLocked(Node[num][0]);
+    }
+    
+    void unlockDescendents(int num) {
+        if(descendents.count(num) == 0 || descendents[num].size() == 0)
+            return;
+        
+        for(int& x : descendents[num]) {
+            Node[x][1] = -1;
+            unlockDescendents(x);
+        }
+    }
+    
+    bool upgrade(int num, int user) {
+        //condition : 1
+        if(Node[num][1] != -1) return false;
+        
+        
+        //condition : 2
+        bool atleastOne = false;
+        checkDescendents(num, atleastOne);
+        //If no node was locked, return false
+        if(!atleastOne) return false;
+        
+        
+        //condition : 3
+        if(IsAnyAncestorLocked(Node[num][0])) return false;
+        
+        
+        //Do the rest
+        unlockDescendents(num);
+        Node[num][1] = user;
+        return true;
+    }
+};
+
+2. Level Hard
+https://leetcode.com/problems/longest-cycle-in-a-graph/
+//You are given a directed graph of n nodes numbered from 0 to n - 1, where each node has at most one outgoing edge.
+
+The graph is represented with a given 0-indexed array edges of size n, indicating that there is a directed edge from node i to node edges[i]. If there is no outgoing edge from node i, then edges[i] == -1.
+
+Return the length of the longest cycle in the graph. If no cycle exists, return -1.
+
+A cycle is a path that starts and ends at the same node.
+
+ 
+
+Example 1:
+
+
+Input: edges = [3,3,4,2,3]
+Output: 3
+Explanation: The longest cycle in the graph is the cycle: 2 -> 4 -> 3 -> 2.
+The length of this cycle is 3, so 3 is returned.
+Example 2:
+
+
+Input: edges = [2,-1,3,1]
+Output: -1
+Explanation: There are no cycles in this graph.
+ 
+
+Constraints:
+
+n == edges.length
+2 <= n <= 105
+-1 <= edges[i] < n
+edges[i] != i
+
+
+class Solution {
+public:
+    vector<int> m;
+    vector<vector<int>> adj;
+    vector<int> dp;
+    int n;
+
+    int dfs(int x, int k) {
+        if (dp[x] != -1)
+            return dp[x];
+        if (m[x] != -1)
+            return k - m[x];
+
+        m[x] = k;
+        int ans = 0;
+        for (auto& c : adj[x]) {
+            ans = max(ans, dfs(c, k + 1));
+        }
+        dp[x] = ans;
+        return ans;
+    }
+
+    int longestCycle(vector<int>& a) {
+        this->n = a.size();
+        adj.resize(n);
+        m.assign(n, -1);
+        dp.assign(n, -1);
+      
+
+        for (int i = 0; i < n; i++) {
+            if (a[i] != -1 && a[i] < n) {
+                adj[i].push_back(a[i]);
+            }
+        }
+
+        int ans = -1;
+        for (int i = 0; i < n; i++) {
+            if (dp[i] == -1) {
+                ans = max(ans, dfs(i, 0));
+            }
+        }
+        if(ans==0)
+         ans=-1;
+        return ans;
+    }
+};
+
+
+3.https://leetcode.com/problems/longest-substring-without-repeating-characters/
+Given a string s, find the length of the longest 
+substring
+ without repeating characters.
+
+ 
+
+Example 1:
+
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+Example 2:
+
+Input: s = "bbbbb"
+Output: 1
+Explanation: The answer is "b", with the length of 1.
+Example 3:
+
+Input: s = "pwwkew"
+Output: 3
+Explanation: The answer is "wke", with the length of 3.
+Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
+ 
+
+Constraints:
+
+0 <= s.length <= 5 * 104
+s consists of English letters, digits, symbols and spaces.
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        int n = s.size();
+        int i = 0;
+        int e = 0;
+        unordered_set<char> st;
+        int ans = 0;
+        while (i < n) {
+            while (e < n) {
+                if (st.count(s[e]) == 0) {
+                    st.insert(s[e]);
+                    e++;
+                }
+                else {
+                    break;
+                }
+            }
+            ans = max(ans, e - i);
+            st.erase(s[i]);
+            i++;
+        }
+        return ans;
+    }
+};
+
+// class Solution {
+// public:
+//     int lengthOfLongestSubstring(string s) {
+//         int n = s.size();
+//         if (n <= 1) {
+//             return n;
+//         }
+//         map<char, int> mp;
+//         int st = 0;
+//         int ans = 1;
+//         mp[s[0]] = 0;
+//         for (int i = 1; i < n; i++) {
+//             if (mp.count(s[i]) == 0) {
+//                 ans = max(ans, i - st + 1);
+//             }
+//             else {
+//                 if (mp[s[i]] >= st) {
+//                     st = mp[s[i]] + 1;
+//                 }
+//                 else {
+//                     ans = max(ans, i - st + 1);
+//                 }
+//             }
+//             mp[s[i]] = i;
+//         }    
+//         return ans;
+//     }
+// };
+
+
+4. 2374. Node With Highest Edge Score
+https://leetcode.com/problems/node-with-highest-edge-score/e Score
+
+You are given a directed graph with n nodes labeled from 0 to n - 1, where each node has exactly one outgoing edge.
+The graph is represented by a given 0-indexed integer array edges of length n, where edges[i] indicates that there is a directed edge from node i to node edges[i].
+The edge score of a node i is defined as the sum of the labels of all the nodes that have an edge pointing to i.
+Return the node with the highest edge score. If multiple nodes have the same edge score, return the node with the smallest index.
+Input: edges = [1,0,0,0,0,7,7,5]
+Output: 7
+Explanation:
+- The nodes 1, 2, 3 and 4 have an edge pointing to node 0. The edge score of node 0 is 1 + 2 + 3 + 4 = 10.
+- The node 0 has an edge pointing to node 1. The edge score of node 1 is 0.
+- The node 7 has an edge pointing to node 5. The edge score of node 5 is 7.
+- The nodes 5 and 6 have an edge pointing to node 7. The edge score of node 7 is 5 + 6 = 11.
+Node 7 has the highest edge score so return 7.
+
+Solution:
+class Solution {
+public:
+  int edgeScore(vector<int>& edges) {
+        unordered_map<int, long> scores;
+        int highestScoreNode = 0;
+        for (int i = 0; i < edges.size(); i++) {
+            scores[edges[i]] += i;
+            int lastScore = scores[edges[i]], highestScore = scores[highestScoreNode];
+            if (lastScore > highestScore)
+                highestScoreNode = edges[i];
+            else if (lastScore == highestScore)
+                highestScoreNode = min(edges[i], highestScoreNode);
+        }
+        return highestScoreNode;
+    }
+};
+
+
+5. https://leetcode.com/problems/find-closest-node-to-given-two-nodes/
+You are given a directed graph of n nodes numbered from 0 to n - 1, where each node has at most one outgoing edge.
+
+The graph is represented with a given 0-indexed array edges of size n, indicating that there is a directed edge from node i to node edges[i]. If there is no outgoing edge from i, then edges[i] == -1.
+
+You are also given two integers node1 and node2.
+
+Return the index of the node that can be reached from both node1 and node2, such that the maximum between the distance from node1 to that node, and from node2 to that node is minimized. If there are multiple answers, return the node with the smallest index, and if no possible answer exists, return -1.
+Input: edges = [2,2,3,-1], node1 = 0, node2 = 1
+Output: 2
+Explanation: The distance from node 0 to node 2 is 1, and the distance from node 1 to node 2 is 1.
+The maximum of those two distances is 1. It can be proven that we cannot get a node with a smaller maximum distance than 1, so we return node 2.
+Note that edges may contain cycles.
+
+Solution:
+    static int closestMeetingNode(const vector<int>& edges, int node1, int node2) noexcept {
+        const int n = size(edges);
+        vector<int> dist1(n, numeric_limits<int>::max());
+        bfs(edges, node1, dist1);
+        vector<int> dist2(n, numeric_limits<int>::max());
+        bfs(edges, node2, dist2);
+        
+        int ans = -1;
+        int best = numeric_limits<int>::max();
+        for (int i = 0; i < n; ++i) {
+            const int curr = max(dist1[i], dist2[i]);
+            if (curr < best) {
+                ans = i;
+                best = curr;
+            }
+        }
+        return ans;
+    }
+	
+    static void bfs(const vector<int>& edges, int node, vector<int>& dist) {
+        int level = 0;
+        while (true) {
+            dist[node] = level;
+            const int next = edges[node];
+            if (next == -1 || dist[next] < level) break;
+            
+            node = next;
+            ++level;
+        }
+    }
